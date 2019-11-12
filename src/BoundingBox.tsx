@@ -6,9 +6,11 @@ export type BoundingBoxProps = {
   top: number;
   width: number;
   height: number;
+  display: boolean;
   onAddLink: () => void;
 };
 
+//パスをグループ化したりリンクをつけたりTransFromしたりするコンポーネント
 export const BoundingBox: FC<BoundingBoxProps> = props => {
   return <></>;
 };

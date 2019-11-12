@@ -19,11 +19,14 @@ export type Stroke = {
 function App() {
   const [points, setPoints] = useState<drawPoint[]>([]);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
 
-  const isDragging = useRef<boolean>(false);
+  //stateではなく一時変数で管理する場合はRefを利用すると常に最新値にアクセスできる
+  //const isDragging = useRef<boolean>(false);
 
   const handleDown = (event: React.PointerEvent<SVGSVGElement>) => {
-    isDragging.current = true;
+    //isDragging.current = true;
+    setIsDragging(true);
 
     const newPoint: drawPoint = {
       x: Math.floor(event.pageX),
@@ -34,7 +37,8 @@ function App() {
   };
 
   const handleMove = (event: React.PointerEvent<SVGSVGElement>) => {
-    if (isDragging.current) {
+    //if (isDragging.current) {
+    if (isDragging) {
       const newPoint: drawPoint = {
         x: Math.floor(event.pageX),
         y: Math.floor(event.pageY)
@@ -44,7 +48,8 @@ function App() {
   };
 
   const handleUp = (event: React.PointerEvent<SVGSVGElement>) => {
-    isDragging.current = false;
+    //isDragging.current = false;
+    setIsDragging(false);
     const newStroke: Stroke = {
       id: `${event.pressure}`,
       points: points
@@ -62,6 +67,11 @@ function App() {
       return index !== strokes.length - 1;
     });
     setStrokes(newStrokes);
+  };
+
+  //全部消去
+  const handleAllClear = event => {
+    setStrokes([]);
   };
 
   return (
@@ -88,6 +98,7 @@ function App() {
         <StrokeDrawer strokes={strokes} />
       </svg>
       <input type={"button"} value={"元に戻す"} onClick={handleUndo} />
+      <input type={"button"} value={"リセット"} onClick={handleAllClear} />
     </div>
   );
 }
