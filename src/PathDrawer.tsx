@@ -6,6 +6,7 @@ export type PathDrawerProps = {
   points: drawPoint[];
 };
 
+//リアルタイム描画用Component
 export const PathDrawer: FC<PathDrawerProps> = props => {
   const initialPoint: drawPoint = props.points[0] || { x: 0, y: 0 };
 
