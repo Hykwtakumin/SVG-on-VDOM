@@ -54,27 +54,41 @@ function App() {
 
     //pointsはリセットする
     setPoints([]);
+  };
 
-    console.log(`points: ${points.length}`);
+  //元に戻す
+  const handleUndo = event => {
+    const newStrokes = strokes.filter((stroke, index) => {
+      return index !== strokes.length - 1;
+    });
+    setStrokes(newStrokes);
   };
 
   return (
-    <svg
-      id={"mainCanvas"}
-      onPointerDown={handleDown}
-      onPointerMove={handleMove}
-      onPointerUp={handleUp}
-      onPointerCancel={handleUp}
-      width={"800"}
-      height={"600"}
+    <div
       style={{
         border: "solid 1px black",
         touchAction: "none"
       }}
     >
-      <PathDrawer points={points} />
-      <StrokeDrawer strokes={strokes} />
-    </svg>
+      <svg
+        id={"mainCanvas"}
+        onPointerDown={handleDown}
+        onPointerMove={handleMove}
+        onPointerUp={handleUp}
+        onPointerCancel={handleUp}
+        width={"800"}
+        height={"600"}
+        style={{
+          border: "solid 1px black",
+          touchAction: "none"
+        }}
+      >
+        <PathDrawer points={points} />
+        <StrokeDrawer strokes={strokes} />
+      </svg>
+      <input type={"button"} value={"元に戻す"} onClick={handleUndo} />
+    </div>
   );
 }
 
