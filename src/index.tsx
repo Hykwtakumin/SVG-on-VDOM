@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { render } from "react-dom";
 import { PathDrawer } from "./PathDrawer";
 
@@ -19,13 +19,15 @@ function App() {
   const [pathObjects, setPathObjects] = useState<oneStroke[]>([]);
   const [points, setPoints] = useState<drawPoint[]>([]);
 
-  let isDragging: boolean = false;
+  const isDragging = useRef<boolean>(false);
+
+  //let isDragging: boolean = false;
   const tempPoints: drawPoint[] = [];
 
   const handleDown = (event: React.PointerEvent<SVGSVGElement>) => {
     //新しいPathObjectを生成する
     //ただし描画はReactにまかせる
-    isDragging = true;
+    isDragging.current = true;
     event.persist();
     // const newOneStroke: oneStroke = {
     //   id: shortId(),
@@ -36,22 +38,30 @@ function App() {
       x: event.pageX,
       y: event.pageY
     };
-    tempPoints.push(newPoint);
-    console.dir(tempPoints);
+    //tempPoints.push(newPoint);
+    //console.dir(tempPoints);
     // const newPoints = points.push(newPoint);
     // setPoints(Object.assign(points, newPoints));
+    setPoints([...points, newPoint]);
   };
 
   const handleMove = (event: React.PointerEvent<SVGSVGElement>) => {
     //最新のPathを操作する
-    if (isDragging) {
-      event.persist();
+    if (isDragging.current) {
+      //event.persist();
+      console.log("handle Move");
       const newPoint: drawPoint = {
         x: event.pageX,
         y: event.pageY
       };
-      tempPoints.push(newPoint);
-      console.dir(tempPoints);
+      //tempPoints.push(newPoint);
+      //console.dir(tempPoints);
+
+      //const newPoints = points.push(newPoint);
+      //setPoints(Object.assign(points, newPoints));
+      setPoints([...points, newPoint]);
+      //setPoints(...points, newPoints);
+      console.dir(points);
 
       // const lastPath: oneStroke = pathObjects[pathObjects.length];
       // if (lastPath) {
@@ -72,13 +82,15 @@ function App() {
 
   const handleUp = (event: React.PointerEvent<SVGSVGElement>) => {
     //操作を中断する
-    isDragging = false;
-    if (tempPoints && tempPoints.length > 0) {
-      setPoints(tempPoints);
-      //tempPoints.length = 0;
-    }
+    isDragging.current = false;
+    // if (tempPoints && tempPoints.length > 0) {
+    //   //setPoints(tempPoints);
+    //   //tempPoints.length = 0;
+    // }
 
-    console.dir(points);
+    //setPoints(prevPoints => {});
+
+    console.log(`points: ${points.length}`);
   };
 
   return (
