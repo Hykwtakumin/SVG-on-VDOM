@@ -28,6 +28,7 @@ export const StrokeDrawer: FC<StrokeDrawerProps> = props => {
             pointerEvents={"none"}
             fill={"rgba(0,0,0,0)"}
             id={stroke.id}
+            key={stroke.id}
             d={`M ${initialPoint.x} ${initialPoint.y} ${LineToPoints}`}
           />
         );
