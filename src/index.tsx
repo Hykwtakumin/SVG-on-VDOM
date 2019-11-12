@@ -26,8 +26,8 @@ function App() {
     isDragging.current = true;
 
     const newPoint: drawPoint = {
-      x: event.pageX,
-      y: event.pageY
+      x: Math.floor(event.pageX),
+      y: Math.floor(event.pageY)
     };
 
     setPoints([...points, newPoint]);
@@ -36,8 +36,8 @@ function App() {
   const handleMove = (event: React.PointerEvent<SVGSVGElement>) => {
     if (isDragging.current) {
       const newPoint: drawPoint = {
-        x: event.pageX,
-        y: event.pageY
+        x: Math.floor(event.pageX),
+        y: Math.floor(event.pageY)
       };
       setPoints([...points, newPoint]);
     }
