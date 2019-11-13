@@ -68,6 +68,7 @@ export const BoundingBox: FC<BoundingBoxProps> = props => {
     } else if (isDragging) {
       const now = getPoint(event.pageX, event.pageY, bbRef.current);
       //BBを作る
+      //座標がネガティブになったときの処理も実装する
       setBBSize({
         left: bbSize.left,
         top: bbSize.top,

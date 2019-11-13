@@ -20,11 +20,19 @@ export const StrokeDrawer: FC<StrokeDrawerProps> = props => {
           }
         });
 
+        const style = (): string => {
+          if (stroke.isSelected) {
+            return "red";
+          } else {
+            return "#585858";
+          }
+        };
+
         return (
           <path
             strokeLinejoin={"round"}
             strokeLinecap={"round"}
-            stroke={"#585858"}
+            stroke={style()}
             strokeWidth={"6"}
             pointerEvents={props.events}
             fill={"rgba(0,0,0,0)"}

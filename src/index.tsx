@@ -17,6 +17,7 @@ export type drawPoint = {
 export type Stroke = {
   id: string;
   points: drawPoint[];
+  isSelected: boolean;
 };
 
 export type PointerEvents = "none" | "auto";
@@ -38,8 +39,12 @@ function App() {
   const [events, setEvents] = useState<PointerEvents>("none");
   //モーダルの表示
   const [isOpen, setIsOpen] = useState<boolean>(false);
-
-  const canvasRef = useRef(null);
+  //キャンバスのref
+  const canvasRef = useRef<SVGSVGElement>(null);
+  //BB判定用Rectのref
+  const inRectRef = useRef<SVGRectElement>(null);
+  //BBで選択対象になった要素のidのリスト
+  const [selectedElms, setSelectedElms] = useState<string[]>([]);
 
   //stateではなく一時変数で管理する場合はRefを利用すると常に最新値にアクセスできる
   //const isDragging = useRef<boolean>(false);
@@ -118,15 +123,32 @@ function App() {
 
   //BBがリサイズされたときに送られる
   const handleBBResized = (size: Size) => {
-    const inRect = canvasRef.current.createSVGRect();
-    inRect.x = size.left;
-    inRect.y = size.top;
-    inRect.width = size.width;
-    inRect.height = size.height;
+    inRectRef.current.setAttribute("x", `${size.left}`);
+    inRectRef.current.setAttribute("y", `${size.top}`);
+    inRectRef.current.setAttribute("width", `${size.width}`);
+    inRectRef.current.setAttribute("height", `${size.height}`);
     const list = Array.from(
-      canvasRef.current.getIntersectionList(inRect, null)
+      canvasRef.current.getIntersectionList(inRectRef.current.getBBox(), null)
     );
-    console.dir(list);
+    //選択されたPathのIDを配列に入れていく
+    setSelectedElms(
+      list.reduce((prev, curr, index) => {
+        prev.push(curr.id);
+        return prev;
+      }, [])
+    );
+    //StrokeのisSelected要素を入れ替えていく
+    setStrokes(
+      strokes.reduce((prev, curr, index) => {
+        if (selectedElms.includes(curr.id)) {
+          curr.isSelected = true;
+        } else {
+          curr.isSelected = false;
+        }
+        prev.push(curr);
+        return prev;
+      }, [])
+    );
   };
 
   return (
@@ -171,6 +193,12 @@ function App() {
         <PathDrawer points={points} />
         <StrokeDrawer strokes={strokes} events={events} />
         <GroupDrawer groups={[]} events={events} />
+        <rect
+          ref={inRectRef}
+          stroke="none"
+          fill="rgba(0,0,0,0)"
+          pointerEvents={"none"}
+        />
       </svg>
     </>
   );
