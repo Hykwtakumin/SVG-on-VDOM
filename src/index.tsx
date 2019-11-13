@@ -3,8 +3,9 @@ import { useState, useEffect, useRef } from "react";
 import { render } from "react-dom";
 import { PathDrawer } from "./PathDrawer";
 import { StrokeDrawer } from "./StrokeDrawer";
-
 import "./styles.css";
+import { GroupDrawer, Group } from "./GroupDrawer";
+import { Dialog } from "./Dialog";
 
 export type drawPoint = {
   x: number;
@@ -16,10 +17,21 @@ export type Stroke = {
   points: drawPoint[];
 };
 
+export type PointerEvents = "none" | "auto";
+
 function App() {
+  //リアルタイムで描画する座標
   const [points, setPoints] = useState<drawPoint[]>([]);
+  //通常のストローク
   const [strokes, setStrokes] = useState<Stroke[]>([]);
+  //グループ化した要素たち
+  const [groups, setGroups] = useState<Group[]>([]);
+  //ドラッグ中のboolean
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  //要素のpointer-events
+  const [events, setEvents] = useState<PointerEvents>("none");
+  //モーダルの表示
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   //stateではなく一時変数で管理する場合はRefを利用すると常に最新値にアクセスできる
   //const isDragging = useRef<boolean>(false);
@@ -69,9 +81,13 @@ function App() {
     setStrokes(newStrokes);
   };
 
+  //消去する前にダイアログを表示する
+  const handleClearDialog = event => {};
+
   //全部消去
-  const handleAllClear = event => {
+  const handleAllClear = () => {
     setStrokes([]);
+    setIsOpen(false);
   };
 
   return (
@@ -96,9 +112,23 @@ function App() {
       >
         <PathDrawer points={points} />
         <StrokeDrawer strokes={strokes} />
+        <GroupDrawer groups={[]} />
       </svg>
       <input type={"button"} value={"元に戻す"} onClick={handleUndo} />
-      <input type={"button"} value={"リセット"} onClick={handleAllClear} />
+      <input
+        type={"button"}
+        value={"リセット"}
+        onClick={() => {
+          setIsOpen(true);
+        }}
+      />
+      <Dialog
+        isShow={isOpen}
+        onOk={handleAllClear}
+        onCancel={() => {
+          setIsOpen(false);
+        }}
+      />
     </div>
   );
 }
