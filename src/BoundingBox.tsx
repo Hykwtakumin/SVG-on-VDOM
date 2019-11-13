@@ -70,46 +70,6 @@ export const BoundingBox: FC<BoundingBoxProps> = props => {
       //BBを作る
       //座標がネガティブになったときの処理も実装する
 
-      // const nowWidth =
-      //   Math.floor(now.x) - parseInt(rectRef.current.getAttribute("x"));
-      // const nowHeight =
-      //   Math.floor(now.y) - parseInt(rectRef.current.getAttribute("y"));
-
-      // let fixedLeft, fixedTop, fixedWidth, fixedHeight;
-
-      // if (Math.floor(now.x) < bbSize.left && Math.floor(now.y) < bbSize.top) {
-      //   //縦横どちらもマイナスの時
-      //   fixedLeft = Math.floor(now.x);
-      //   fixedTop = Math.floor(now.y);
-      //   fixedWidth = bbSize.left;
-      //   fixedHeight = bbSize.top;
-      // } else if (Math.floor(now.x) < bbSize.left) {
-      //   //横がマイナスの時
-      //   fixedLeft = Math.floor(now.x);
-      //   fixedTop = bbSize.top;
-      //   fixedWidth = bbSize.left;
-      //   fixedHeight = Math.floor(now.y);
-      // } else if (Math.floor(now.y) < bbSize.top) {
-      //   //縦がマイナスの時
-      //   fixedLeft = bbSize.left;
-      //   fixedTop = Math.floor(now.y);
-      //   fixedWidth = Math.floor(now.x);
-      //   fixedHeight = bbSize.top;
-      // } else {
-      //   //普通のとき
-      //   fixedLeft = bbSize.left;
-      //   fixedTop = bbSize.top;
-      //   fixedWidth = Math.floor(now.x) - bbSize.left;
-      //   fixedHeight = Math.floor(now.y) - bbSize.top;
-      // }
-
-      // setBBSize({
-      //   left: fixedLeft,
-      //   top: fixedTop,
-      //   width: fixedWidth,
-      //   height: fixedHeight
-      // });
-
       if (Math.floor(now.x) > bbSize.left && Math.floor(now.y) > bbSize.top) {
         setBBSize({
           left: bbSize.left,

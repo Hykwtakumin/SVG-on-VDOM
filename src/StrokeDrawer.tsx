@@ -5,6 +5,7 @@ import { FC } from "react";
 export type StrokeDrawerProps = {
   strokes: Stroke[];
   events: PointerEvents;
+  style?: string;
 };
 
 //描かれたPathをまとめて管理するComponent
@@ -34,6 +35,7 @@ export const StrokeDrawer: FC<StrokeDrawerProps> = props => {
             strokeLinecap={"round"}
             stroke={style()}
             strokeWidth={"6"}
+            className={props.style || ""}
             pointerEvents={props.events}
             fill={"rgba(0,0,0,0)"}
             id={stroke.id}

@@ -4,5 +4,10 @@
 }
 
 html {
-  touch-action: noen;
+  touch-action: none;
+}
+
+.groupElms:hover {
+  stroke: green;
+  stroke-width: 10;
 }

@@ -5,7 +5,6 @@ import { PathDrawer } from "./PathDrawer";
 import { StrokeDrawer } from "./StrokeDrawer";
 import { GroupDrawer, Group } from "./GroupDrawer";
 import { Points, getPoint } from "./Point";
-import { BoundingBox, Size } from "./BoundingBox";
 import { Dialog } from "./Dialog";
 import "./styles.css";
 
@@ -18,6 +17,13 @@ export type Stroke = {
   id: string;
   points: drawPoint[];
   isSelected: boolean;
+};
+
+export type Size = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
 };
 
 export type PointerEvents = "none" | "auto";
@@ -43,18 +49,19 @@ function App() {
   const canvasRef = useRef<SVGSVGElement>(null);
   //BB判定用Rectのref
   const inRectRef = useRef<SVGRectElement>(null);
+  //BBの寸法
+  const [inRectSize, setInrectSize] = useState<Size>({
+    left: 0,
+    top: 0,
+    width: 0,
+    height: 0
+  });
   //BBで選択対象になった要素のidのリスト
   const [selectedElms, setSelectedElms] = useState<string[]>([]);
 
-  //stateではなく一時変数で管理する場合はRefを利用すると常に最新値にアクセスできる
-  //const isDragging = useRef<boolean>(false);
-
   const handleDown = (event: React.PointerEvent<SVGSVGElement>) => {
-    //isDragging.current = true;
-
+    setIsDragging(true);
     if (editorMode === "draw") {
-      setIsDragging(true);
-
       const now = getPoint(event.pageX, event.pageY, canvasRef.current);
 
       const newPoint: drawPoint = {
@@ -63,27 +70,75 @@ function App() {
       };
 
       setPoints([...points, newPoint]);
+    } else {
+      //編集モードのときはBBやパスの操作ということにする
+      handleBBDown(event);
     }
+  };
+
+  const handleBBDown = (event: React.PointerEvent<SVGSVGElement>) => {
+    const now = getPoint(event.pageX, event.pageY, canvasRef.current);
+    setInrectSize({
+      left: Math.floor(now.x),
+      top: Math.floor(now.y),
+      width: 0,
+      height: 0
+    });
+
+    // const target = event.target as SVGElement;
+    // if (target.id === "mainCavas") {
+    //   //BBを新規作成
+    //   const now = getPoint(event.pageX, event.pageY, canvasRef.current);
+    //   setInrectSize({
+    //     left: Math.floor(now.x),
+    //     top: Math.floor(now.y),
+    //     width: 0,
+    //     height: 0
+    //   });
+    // } else {
+    // }
   };
 
   const handleMove = (event: React.PointerEvent<SVGSVGElement>) => {
     //if (isDragging.current) {
-    if (editorMode === "draw") {
-      if (isDragging) {
+    if (isDragging) {
+      if (editorMode === "draw") {
         const now = getPoint(event.pageX, event.pageY, canvasRef.current);
         const newPoint: drawPoint = {
           x: Math.floor(now.x),
           y: Math.floor(now.y)
         };
         setPoints([...points, newPoint]);
+      } else {
+        handleBBMove(event);
       }
     }
   };
 
+  const handleBBMove = (event: React.PointerEvent<SVGSVGElement>) => {
+    const target = event.target as SVGElement;
+    const now = getPoint(event.pageX, event.pageY, canvasRef.current);
+    // if (target.id === "mainCavas") {
+
+    // } else {}
+    //BBのサイズ調整
+    if (
+      Math.floor(now.x) > inRectSize.left &&
+      Math.floor(now.y) > inRectSize.top
+    ) {
+      setInrectSize({
+        left: inRectSize.left,
+        top: inRectSize.top,
+        width: Math.floor(now.x) - inRectSize.left,
+        height: Math.floor(now.y) - inRectSize.top
+      });
+      updateInterSeciton();
+    }
+  };
+
   const handleUp = (event: React.PointerEvent<SVGSVGElement>) => {
-    //isDragging.current = false;
+    setIsDragging(false);
     if (editorMode === "draw") {
-      setIsDragging(false);
       const newStroke: Stroke = {
         id: `${Math.floor(event.pageX)}-${Math.floor(event.pageY)}`,
         points: points
@@ -93,7 +148,14 @@ function App() {
 
       //pointsはリセットする
       setPoints([]);
+    } else {
+      handleBBUp(event);
     }
+  };
+
+  const handleBBUp = (event: React.PointerEvent<SVGSVGElement>) => {
+    //
+    updateInterSeciton();
   };
 
   //元に戻す
@@ -122,11 +184,7 @@ function App() {
   };
 
   //BBがリサイズされたときに送られる
-  const handleBBResized = (size: Size) => {
-    inRectRef.current.setAttribute("x", `${size.left}`);
-    inRectRef.current.setAttribute("y", `${size.top}`);
-    inRectRef.current.setAttribute("width", `${size.width}`);
-    inRectRef.current.setAttribute("height", `${size.height}`);
+  const updateInterSeciton = () => {
     const list = Array.from(
       canvasRef.current.getIntersectionList(inRectRef.current.getBBox(), null)
     );
@@ -157,6 +215,7 @@ function App() {
       //新しいGroupを作成し、そこに追加する
       const selectedStrokes = strokes.reduce((prev, curr) => {
         if (selectedElms.includes(curr.id)) {
+          curr.isSelected = false;
           prev.push(curr);
         }
         return prev;
@@ -198,8 +257,6 @@ function App() {
         />
         <input type={"button"} value={"リンクを追加"} onClick={handleAddLink} />
 
-        <BoundingBox mode={editorMode} onResized={handleBBResized} />
-
         <Dialog
           isShow={isOpen}
           onOk={handleAllClear}
@@ -220,18 +277,23 @@ function App() {
         height={"600"}
         style={{
           border: "solid 1px black",
-          touchAction: "none",
-          position: "absolute"
+          touchAction: "none"
         }}
       >
         <PathDrawer points={points} />
         <StrokeDrawer strokes={strokes} events={events} />
         <GroupDrawer groups={groups} events={events} />
         <rect
+          display={editorMode === "draw" ? "none" : ""}
           ref={inRectRef}
+          x={inRectSize.left}
+          y={inRectSize.top}
+          width={inRectSize.width}
+          height={inRectSize.height}
           stroke="none"
-          fill="rgba(0,0,0,0)"
-          pointerEvents={"none"}
+          fill="#01bc8c"
+          fillOpacity="0.25"
+          pointerEvents={events}
         />
       </svg>
     </>
