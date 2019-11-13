@@ -21,7 +21,8 @@ export const Dialog: FC<DialogProps> = props => {
             style={{
               width: "300",
               height: "200",
-              backgroundColor: "gray"
+              backgroundColor: "gray",
+              position: "fixed"
             }}
           >
             <h1>消去しますか?</h1>

@@ -3,9 +3,11 @@ import { useState, useEffect, useRef } from "react";
 import { render } from "react-dom";
 import { PathDrawer } from "./PathDrawer";
 import { StrokeDrawer } from "./StrokeDrawer";
-import "./styles.css";
 import { GroupDrawer, Group } from "./GroupDrawer";
+import { Points, getPoint } from "./Point";
+import { BoundingBox, Size } from "./BoundingBox";
 import { Dialog } from "./Dialog";
+import "./styles.css";
 
 export type drawPoint = {
   x: number;
@@ -19,7 +21,11 @@ export type Stroke = {
 
 export type PointerEvents = "none" | "auto";
 
+export type EditorMode = "draw" | "edit";
+
 function App() {
+  //エディタの編集モード
+  const [editorMode, setEditorMode] = useState<EditorMode>("draw");
   //リアルタイムで描画する座標
   const [points, setPoints] = useState<drawPoint[]>([]);
   //通常のストローク
@@ -33,44 +39,56 @@ function App() {
   //モーダルの表示
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
+  const canvasRef = useRef(null);
+
   //stateではなく一時変数で管理する場合はRefを利用すると常に最新値にアクセスできる
   //const isDragging = useRef<boolean>(false);
 
   const handleDown = (event: React.PointerEvent<SVGSVGElement>) => {
     //isDragging.current = true;
-    setIsDragging(true);
 
-    const newPoint: drawPoint = {
-      x: Math.floor(event.pageX),
-      y: Math.floor(event.pageY)
-    };
+    if (editorMode === "draw") {
+      setIsDragging(true);
 
-    setPoints([...points, newPoint]);
+      const now = getPoint(event.pageX, event.pageY, canvasRef.current);
+
+      const newPoint: drawPoint = {
+        x: Math.floor(now.x),
+        y: Math.floor(now.y)
+      };
+
+      setPoints([...points, newPoint]);
+    }
   };
 
   const handleMove = (event: React.PointerEvent<SVGSVGElement>) => {
     //if (isDragging.current) {
-    if (isDragging) {
-      const newPoint: drawPoint = {
-        x: Math.floor(event.pageX),
-        y: Math.floor(event.pageY)
-      };
-      setPoints([...points, newPoint]);
+    if (editorMode === "draw") {
+      if (isDragging) {
+        const now = getPoint(event.pageX, event.pageY, canvasRef.current);
+        const newPoint: drawPoint = {
+          x: Math.floor(now.x),
+          y: Math.floor(now.y)
+        };
+        setPoints([...points, newPoint]);
+      }
     }
   };
 
   const handleUp = (event: React.PointerEvent<SVGSVGElement>) => {
     //isDragging.current = false;
-    setIsDragging(false);
-    const newStroke: Stroke = {
-      id: `${event.pressure}`,
-      points: points
-    };
+    if (editorMode === "draw") {
+      setIsDragging(false);
+      const newStroke: Stroke = {
+        id: `${Math.floor(event.pageX)}-${Math.floor(event.pageY)}`,
+        points: points
+      };
 
-    setStrokes([...strokes, newStroke]);
+      setStrokes([...strokes, newStroke]);
 
-    //pointsはリセットする
-    setPoints([]);
+      //pointsはリセットする
+      setPoints([]);
+    }
   };
 
   //元に戻す
@@ -81,23 +99,62 @@ function App() {
     setStrokes(newStrokes);
   };
 
-  //消去する前にダイアログを表示する
-  const handleClearDialog = event => {};
-
   //全部消去
   const handleAllClear = () => {
     setStrokes([]);
     setIsOpen(false);
   };
 
+  //編集モード切り替え
+  const switchEditorMode = event => {
+    if (editorMode === "draw") {
+      setEditorMode("edit");
+      setEvents("auto");
+    } else {
+      setEditorMode("draw");
+      setEvents("none");
+    }
+  };
+
+  //BBがリサイズされたときに送られる
+  const handleBBResized = (size: Size) => {
+    const inRect = canvasRef.current.createSVGRect();
+    inRect.x = size.left;
+    inRect.y = size.top;
+    inRect.width = size.width;
+    inRect.height = size.height;
+    const list = Array.from(
+      canvasRef.current.getIntersectionList(inRect, null)
+    );
+    console.dir(list);
+  };
+
   return (
-    <div
-      style={{
-        border: "solid 1px black",
-        touchAction: "none"
-      }}
-    >
+    <>
+      <div id={"controleSection"}>
+        <input type={"button"} value={editorMode} onClick={switchEditorMode} />
+        <input type={"button"} value={"元に戻す"} onClick={handleUndo} />
+        <input
+          type={"button"}
+          value={"リセット"}
+          onClick={() => {
+            setIsOpen(true);
+          }}
+        />
+
+        <BoundingBox mode={editorMode} onResized={handleBBResized} />
+
+        <Dialog
+          isShow={isOpen}
+          onOk={handleAllClear}
+          onCancel={() => {
+            setIsOpen(false);
+          }}
+        />
+      </div>
+
       <svg
+        ref={canvasRef}
         id={"mainCanvas"}
         onPointerDown={handleDown}
         onPointerMove={handleMove}
@@ -107,29 +164,15 @@ function App() {
         height={"600"}
         style={{
           border: "solid 1px black",
-          touchAction: "none"
+          touchAction: "none",
+          position: "absolute"
         }}
       >
         <PathDrawer points={points} />
-        <StrokeDrawer strokes={strokes} />
-        <GroupDrawer groups={[]} />
+        <StrokeDrawer strokes={strokes} events={events} />
+        <GroupDrawer groups={[]} events={events} />
       </svg>
-      <input type={"button"} value={"元に戻す"} onClick={handleUndo} />
-      <input
-        type={"button"}
-        value={"リセット"}
-        onClick={() => {
-          setIsOpen(true);
-        }}
-      />
-      <Dialog
-        isShow={isOpen}
-        onOk={handleAllClear}
-        onCancel={() => {
-          setIsOpen(false);
-        }}
-      />
-    </div>
+    </>
   );
 }
 

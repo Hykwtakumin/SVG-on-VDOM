@@ -1,9 +1,10 @@
 import * as React from "react";
-import { drawPoint, Stroke } from "./index";
+import { drawPoint, Stroke, PointerEvents } from "./index";
 import { FC } from "react";
 
 export type StrokeDrawerProps = {
   strokes: Stroke[];
+  events: PointerEvents;
 };
 
 //描かれたPathをまとめて管理するComponent
@@ -25,7 +26,7 @@ export const StrokeDrawer: FC<StrokeDrawerProps> = props => {
             strokeLinecap={"round"}
             stroke={"#585858"}
             strokeWidth={"6"}
-            pointerEvents={"none"}
+            pointerEvents={props.events}
             fill={"rgba(0,0,0,0)"}
             id={stroke.id}
             key={index}
