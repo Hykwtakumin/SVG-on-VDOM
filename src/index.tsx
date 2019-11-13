@@ -151,6 +151,39 @@ function App() {
     );
   };
 
+  //リンクの追加
+  const handleAddLink = event => {
+    if (selectedElms) {
+      //新しいGroupを作成し、そこに追加する
+      const selectedStrokes = strokes.reduce((prev, curr) => {
+        if (selectedElms.includes(curr.id)) {
+          prev.push(curr);
+        }
+        return prev;
+      }, []);
+      const newGroup: Group = {
+        id: `${Date.now()}`,
+        href: "https://github.com/Hykwtakumin/HyperIllustServer",
+        strokes: selectedStrokes,
+        transform: ""
+      };
+      setGroups([...groups, newGroup]);
+      //selectedにある要素をstrokesから削除する
+      setStrokes(
+        strokes.reduce((prev, curr) => {
+          if (!selectedElms.includes(curr.id)) {
+            prev.push(curr);
+          }
+          return prev;
+        }, [])
+      );
+      //selectedな要素をクリアーする
+      setSelectedElms([]);
+    } else {
+      console.log("要素が選択されていません");
+    }
+  };
+
   return (
     <>
       <div id={"controleSection"}>
@@ -163,6 +196,7 @@ function App() {
             setIsOpen(true);
           }}
         />
+        <input type={"button"} value={"リンクを追加"} onClick={handleAddLink} />
 
         <BoundingBox mode={editorMode} onResized={handleBBResized} />
 
@@ -192,7 +226,7 @@ function App() {
       >
         <PathDrawer points={points} />
         <StrokeDrawer strokes={strokes} events={events} />
-        <GroupDrawer groups={[]} events={events} />
+        <GroupDrawer groups={groups} events={events} />
         <rect
           ref={inRectRef}
           stroke="none"

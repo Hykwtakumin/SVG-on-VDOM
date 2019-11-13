@@ -9,7 +9,6 @@ export type Group = {
   href: string;
   strokes: Stroke[];
   transform: string;
-  events: PointerEvents;
 };
 
 export type GroupDrawerProps = {
@@ -24,7 +23,7 @@ export const GroupDrawer: FC<GroupDrawerProps> = props => {
       {props.groups.map((group, index) => {
         return (
           <a id={group.id} key={index} href={group.href} target={"blank"}>
-            <g transform={group.transform}>
+            <g transform={group.transform} pointerEvents={props.events}>
               <StrokeDrawer strokes={group.strokes} events={props.events} />
             </g>
           </a>
