@@ -141,7 +141,8 @@ function App() {
     if (editorMode === "draw") {
       const newStroke: Stroke = {
         id: `${Math.floor(event.pageX)}-${Math.floor(event.pageY)}`,
-        points: points
+        points: points,
+        isSelected: false
       };
 
       setStrokes([...strokes, newStroke]);
@@ -224,7 +225,8 @@ function App() {
         id: `${Date.now()}`,
         href: "https://github.com/Hykwtakumin/HyperIllustServer",
         strokes: selectedStrokes,
-        transform: ""
+        transform: "",
+        style: null
       };
       setGroups([...groups, newGroup]);
       //selectedにある要素をstrokesから削除する
